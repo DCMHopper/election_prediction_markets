@@ -1,12 +1,16 @@
 import pandas as pd
 import numpy as np
+import os
 import argparse
 from itertools import repeat
 
 df_college = pd.read_csv('datasets/electoral_college.csv')
-df_data = pd.read_csv('datasets/dummy_data.csv')
-
-print(df_data.head())
+# df_data = pd.read_csv('datasets/dummy_data.csv')
+data_path = "datasets/observed"
+data_files = os.listdir(data_path)
+timestamped_files = {int(file[:10]): file for file in data_files}
+most_recent_data = timestamped_files[max(timestamped_files)]
+df_data = pd.read_csv(os.path.join(data_path,most_recent_data))
 
 # Vectorized a single run, but not the monte carlo
 #
