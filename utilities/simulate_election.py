@@ -34,24 +34,35 @@ def monte_election_batched(data, n_runs=10000, batch_size=10000):
     wins: int = 0
     total_votes: int = 0
     THRESHOLD: int = 270
+    STATE_COUNT: int = 51
 
     n_batches = n_runs // batch_size
     remainder_runs = n_runs % batch_size
+    win_contributions = np.zeros(STATE_COUNT)
 
     for _ in repeat(None,n_batches):
-        batch_wins, batch_sum = process_batch(data, THRESHOLD, batch_size)
+        batch_wins, batch_sum, batch_contributions = process_batch(data, THRESHOLD, batch_size)
         wins += batch_wins
         total_votes += batch_sum
+        win_contributions += batch_contributions
 
     if remainder_runs > 0:
-        batch_wins, batch_sum = process_batch(data, THRESHOLD, remainder_runs)
+        batch_wins, batch_sum, batch_contributions = process_batch(data, THRESHOLD, remainder_runs)
         wins += batch_wins
         total_votes += batch_sum
+        win_contributions += batch_contributions
 
     win_chance = wins / n_runs
     average_votes = total_votes / n_runs
 
-    return win_chance, average_votes
+    win_contribution_percentages = (win_contributions / wins) * 100
+    df_results = pd.DataFrame({
+        'State': df_data['State'],
+        'Contributions': win_contributions,
+        'ContributionPercentage': win_contribution_percentages
+    })
+
+    return win_chance, average_votes, df_results
 
 def process_batch(data, threshold, n_runs):
     randoms = np.random.random(size=(n_runs, len(data)))
@@ -61,7 +72,12 @@ def process_batch(data, threshold, n_runs):
     wins = np.sum(votes > threshold)
     batch_sum = np.sum(votes)
 
-    return wins, batch_sum
+    win_contributions = np.zeros(len(data))
+
+    for i in range(len(data)):
+        win_contributions[i] += np.sum((votes > threshold) & (condition_mask[:, i]))
+
+    return wins, batch_sum, win_contributions
 
 
 def main():
@@ -70,8 +86,9 @@ def main():
     args = parser.parse_args()
     gens = args.gens
     df_merged = pd.merge(df_data,df_college,how='inner')
-    win_chance, avg_votes = monte_election_batched(df_merged,gens)
-    print(f"Batched results: {win_chance}% chance to win, with an average of {avg_votes} votes!")
+    win_chance, avg_votes, df_results = monte_election_batched(df_merged,gens)
+    print(f"Batched results: {win_chance*100}% chance to win, with an average of {avg_votes} votes!")
+    print(df_results)
 
 if __name__ == "__main__":
     main()
