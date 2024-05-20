@@ -55,11 +55,11 @@ def monte_election_batched(data, n_runs=10000, batch_size=10000):
     win_chance = wins / n_runs
     average_votes = total_votes / n_runs
 
-    win_contribution_percentages = (win_contributions / wins) * 100
+    win_contribution_percentages = (win_contributions / wins)
     df_results = pd.DataFrame({
         'State': df_data['State'],
         'Contributions': win_contributions,
-        'ContributionPercentage': win_contribution_percentages
+        'ContributionRate': win_contribution_percentages
     })
 
     return win_chance, average_votes, df_results
@@ -88,7 +88,9 @@ def main():
     df_merged = pd.merge(df_data,df_college,how='inner')
     win_chance, avg_votes, df_results = monte_election_batched(df_merged,gens)
     print(f"Batched results: {win_chance*100}% chance to win, with an average of {avg_votes} votes!")
-    print(df_results)
+    result_filename = f"datasets/calculated/{most_recent_data[:10]}__{gens}gens_contributions.csv"
+    df_results.to_csv(result_filename, index=False)
+
 
 if __name__ == "__main__":
     main()
