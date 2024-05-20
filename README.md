@@ -20,6 +20,7 @@ This 7 point gap is what I am using this project to explore.
 - Use `/polymarket/polymarket.py` to pull live prediction market prices
 - Use `/utilities/simulate_election.py NUM_GENS` to predict the outcome of an election based on most recent data
   - `NUM_GENS`: number of generations to use for the monte carlo simulation
+- Use `/utilities/analyze_results.py` to find the most undervalued markets on the state side (assuming a blue win)
 
 ### Roadmap
 

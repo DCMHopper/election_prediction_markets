@@ -88,7 +88,7 @@ def main():
     df_merged = pd.merge(df_data,df_college,how='inner')
     win_chance, avg_votes, df_results = monte_election_batched(df_merged,gens)
     print(f"Batched results: {win_chance*100}% chance to win, with an average of {avg_votes} votes!")
-    result_filename = f"datasets/calculated/{most_recent_data[:10]}__{gens}gens_contributions.csv"
+    result_filename = f"datasets/calculated/{most_recent_data[:10]}_contributions.csv"
     df_results.to_csv(result_filename, index=False)
 
 
