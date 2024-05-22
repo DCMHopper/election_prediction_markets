@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+from simulate_election import monte_election
 import os
 
 # This script will focus on a strategy for making investments in the various markets
@@ -44,8 +45,9 @@ TOTAL_CAPITAL = 10000
 
 def preselect(df, min_contribution=0.1, min_valuation=0.01) -> pd.DataFrame:
     df_results = df[df["ContributionRate"] > min_contribution]
-    df_results = df_results[df_results["UndervalueRatio"] > min_valuation]
+    df_results = df_results[df_results["Undervaluation"] < -min_valuation]
     df_results["UndervalueRatio"] = df_results["Undervaluation"].abs()
+    df_results["UndervalueRatio"] = df_results["UndervalueRatio"] ** 2
     sum_undervaluations = df_results["UndervalueRatio"].sum()
     df_results["UndervalueRatio"] = df_results["UndervalueRatio"] / sum_undervaluations
     return df_results
@@ -64,8 +66,20 @@ print(df_filtered["UndervalueRatio"].sum())
 def distribute_capital(capital, df_markets) -> list:
     investments = df_markets["UndervalueRatio"] * capital
     investments = np.floor(investments).astype(int)
-    return investments.tolist()
+    return pd.DataFrame({"State": df_markets["State"], "Investment": investments})
 
 
-print(distribute_capital(TOTAL_CAPITAL, df_raw))
-print(distribute_capital(TOTAL_CAPITAL, df_filtered))
+raw_investments = distribute_capital(TOTAL_CAPITAL, df_raw)
+filtered_investments = distribute_capital(TOTAL_CAPITAL, df_filtered)
+
+
+def test_investments(df_raw, df_investments):
+    win_chance, average_votes, df_results, expected_roi, roi_greater_percentage = (
+        monte_election(df_raw, 1000000, investment_data=df_investments)
+    )
+    print(
+        f"Win chance: {win_chance*100:.2f}%\nAverage votes: {average_votes:.3f}\nExpected ROI: ${expected_roi:0,.2f}\nRate of profits:{roi_greater_percentage*100:.2f}%"
+    )
+
+
+test_investments(df_raw, filtered_investments)
